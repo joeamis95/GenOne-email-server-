@@ -1,0 +1,75 @@
+myhostname = mail.domain.com
+myorigin = /etc/mailname
+mydestination = mail.domain.com, domain.com, localhost, localhost.localdomain
+relayhost =
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+local_recipient_maps = proxy:unix:passwd.byname $alias_maps
+
+append_dot_mydomain = no
+myorigin = /etc/mailname
+biff = no
+broken_sasl_auth_clients = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+smtpd_sasl_type = dovecot
+smtpd_tls_auth_only = yes
+smtpd_tls_received_header = yes
+
+
+smtpd_banner = $myhostname ESMTP
+smtpd_helo_required = yes
+smtpd_helo_restrictions = permit_mynetworks, 
+			  reject_non_fqdn_helo_hostname, reject_invalid_helo_hostname,
+			  reject_unknown_helo_hostname, permit
+smtpd_recipient_restrictions = reject_unknown_client_hostname,
+			       reject_unauth_pipelining, permit_mynetworks, 
+			       permit_sasl_authenticated, reject_unauth_destination,
+			       reject_invalid_hostname, reject_non_fqdn_sender
+smtpd_sender_restrictions = reject_unknown_sender_domain, reject_sender_login_mismatch
+smtpd_sender_login_maps = $virtual_mailbox_maps
+
+
+
+#rejections
+unknown_address_reject_code = 550
+unknown_hostname_reject_code = 550
+unknown_client_reject_code = 550
+
+
+#dovecot_destination_recipient_limit = 1
+
+#tls params
+smtpd_use_tls=yes
+smtpd_tls_cert_file=/etc/ssl/certs/fullchain.pem
+smtpd_tls_key_file=/etc/ssl/private/privkey.key
+smtpd_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+smtpd_tls_ciphers = high
+smtpd_tls_loglevel=1
+smtpd_tls_security_level=may
+smtpd_tls_session_cache_timeout= 3600s
+
+#dovecot
+
+tls_random_source=dev:/dev/urandom
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
+smtpd_tls_received_header = yes
+smtpd_tls_protocols = !SSLv2, !SSLv3
+smtp_tls_security_level=may
+smtp_tls_loglevel=1
+#smtp_tls_CAfile=/etc/
+
+
+default_destination_concurrency_limit = 5
+disable_vrfy_command = yes
+relay_destination_concurrency_limit = 1
+smtp_tls_note_starttls_offer = yes
+smtp_tls_security_level = may
+compatibility_level = 2
